@@ -1,0 +1,6 @@
+Flask
+Flask_SQLAlchemy
+SQLAlchemy
+openai
+python-dotenv
+Flask-Bcrypt

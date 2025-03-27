@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ChatGPT-Style Page (Glassmorphism Sidebar, Chat Box Below)</title>
+  <style>
+    /* ------------------------------ GLOBAL STYLES ------------------------------ */
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Copperplate Gothic Light', sans-serif;
+      color: #181918;
+      overflow: hidden;
+    }
+    /* Remove default blue outline for focus on inputs and textareas */
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #ccc;
+    }
+
+    /* ------------------------------ CUSTOM DROPDOWN (INLINE DESIGN) ------------------------------ */
+    .custom-dropdown {
+      position: relative;
+      width: 100%;
+      user-select: none;
+      cursor: pointer;
+    }
+    .custom-dropdown-selected {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background-color: #fff;
+      color: #000;
+      font-size: 14px; /* Match age input text size */
+    }
+    .custom-dropdown-options {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      border-top: none;
+      background-color: #fff;
+      z-index: 1000;
+    }
+    .custom-dropdown-option {
+      padding: 8px;
+      border-bottom: 1px solid #eee;
+      font-size: 14px; /* Match age input text size */
+    }
+    .custom-dropdown-option:hover {
+      background-color: #ccc;
+    }
+    .custom-dropdown.open .custom-dropdown-options {
+      display: block;
+    }
+
+    /* ------------------------------ VIDEO BACKGROUND ------------------------------ */
+    #video-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -1;
+    }
+
+    /* ------------------------------ LAYOUT: SIDEBAR + CHAT SECTION ------------------------------ */
+    .layout {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    /* ------------------------------ SIDEBAR (GLASSMORPHIC) ------------------------------ */
+    .sidebar {
+      width: 280px;
+      background: rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 16px;
+      box-sizing: border-box;
+      transition: all 0.3s ease-in-out;
+    }
+    .sidebar:hover {
+      background: rgba(0, 0, 0, 0.35);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+    .sidebar-header {
+      font-weight: bold;
+      font-size: 20px;
+      margin-bottom: 20px;
+      text-align: center;
+      color: #ecedec;
+    }
+    .chat-history {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 16px;
+    }
+
+    /* ------------------------------ CHAT ITEM ------------------------------ */
+    .chat-item {
+      background-color: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 8px;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      cursor: pointer;
+    }
+    .chat-item:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+    .chat-item-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .chat-title {
+      font-family: 'Copperplate Gothic Light', sans-serif;
+      font-size: 14px;
+      color: #fff;
+      flex: 1;
+      margin: 0;
+      padding: 0;
+      cursor: pointer;
+    }
+    .chat-title:hover {
+      text-decoration: none;
+    }
+    .dots-button {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 18px;
+      cursor: pointer;
+      transition: color 0.3s ease;
+      margin-left: 8px;
+    }
+    .dots-button:hover {
+      color: #ffd;
+    }
+    .chat-menu {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      padding: 8px;
+    }
+    .chat-item.expanded .chat-menu {
+      display: flex;
+    }
+    .chat-menu button {
+      font-family: 'Copperplate Gothic Light', sans-serif;
+      font-size: 14px;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      padding: 6px 10px;
+      cursor: pointer;
+      text-align: left;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+      width: 100%;
+    }
+    .chat-menu button:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+    .rename-input {
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 5px;
+      outline: none;
+      width: 100%;
+      box-sizing: border-box;
+      color: #000;
+    }
+
+    /* ------------------------------ DELETE CONFIRMATION ------------------------------ */
+    .delete-confirmation {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 0, 0, 0.1);
+      border: 1px solid rgba(255, 0, 0, 0.4);
+      border-radius: 4px;
+      padding: 5px;
+      margin-top: 8px;
+    }
+    .delete-confirmation span {
+      font-size: 14px;
+      color: #fff;
+    }
+    .delete-confirmation button {
+      font-family: 'Copperplate Gothic Light', sans-serif;
+      font-size: 14px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    .delete-confirmation .yes-btn {
+      background: rgba(255, 0, 0, 0.7);
+      color: #fff;
+    }
+    .delete-confirmation .yes-btn:hover {
+      background: rgba(255, 0, 0, 1);
+    }
+    .delete-confirmation .no-btn {
+      background: rgba(255, 255, 255, 0.7);
+      color: #000;
+    }
+    .delete-confirmation .no-btn:hover {
+      background: rgba(255, 255, 255, 1);
+    }
+
+    .sidebar-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .sidebar-buttons button {
+      font-family: 'Copperplate Gothic Light', sans-serif;
+      font-size: 14px;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+    .sidebar-buttons button:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* ------------------------------ NEW CHAT BUTTON ------------------------------ */
+    .sidebar-new-chat {
+      font-family: 'Copperplate Gothic Light', sans-serif;
+      font-size: 14px;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 10px 15px;
+      margin-bottom: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+      width: 100%;
+      text-align: center;
+    }
+    .sidebar-new-chat:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* ------------------------------ CHAT SECTION ------------------------------ */
+    .chat-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      box-sizing: border-box;
+      overflow-y: auto;
+    }
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background-color: rgba(255, 255, 255, 0.6);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .user-message {
+      background-color: rgba(0, 0, 0, 0.3);
+      color: #fff;
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      max-width: 70%;
+      align-self: flex-end;
+      backdrop-filter: blur(5px);
+    }
+    .bot-message {
+      background-color: rgba(255, 255, 255, 0.3);
+      color: #000;
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      max-width: 70%;
+      align-self: flex-start;
+      backdrop-filter: blur(5px);
+    }
+
+    .chat-input-container {
+      margin-top: 20px;
+      background-color: rgba(255, 255, 255, 0.6);
+      border-radius: 8px;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin: 0;
+    }
+    .textarea-container {
+      position: relative;
+      width: 100%;
+    }
+    textarea {
+      width: 100%;
+      height: 100px;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      resize: none;
+      font-size: 14px;
+      outline: none;
+      box-sizing: border-box;
+    }
+    .question-placeholder {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      color: gray;
+      font-size: 14px;
+      pointer-events: none;
+      transition: opacity 1.5s ease-in-out;
+      width: calc(100% - 30px);
+      text-align: left;
+    }
+    .send-btn {
+      font-family: 'Copperplate Gothic Light', sans-serif;
+      font-size: 14px;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 10px 15px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+      width: 100%;
+      text-align: center;
+      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+    }
+    .send-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    @keyframes fadeInOut {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+    .fading {
+      animation: fadeInOut 1s infinite;
+    }
+
+    /* ------------------------------ ONBOARDING CONTAINER ------------------------------ */
+    #onboarding-container {
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      margin-bottom: 16px;
+    }
+    #onboarding-container p {
+      font-family: 'Copperplate Gothic Light', sans-serif;
+      color: #fff;
+      font-size: 16px;
+      margin-bottom: 12px;
+    }
+    .option-box {
+      margin: 10px 0;
+    }
+    .option-box label {
+      color: #fff;
+      font-size: 14px;
+      display: block;
+      margin-bottom: 4px;
+    }
+    /* ------------------------------ ONBOARDING DROPDOWNS ------------------------------ */
+    /* Nationality Dropdown */
+    #nationality-box .custom-dropdown { margin-bottom: 10px; }
+    /* Gender Dropdown */
+    #gender-box .custom-dropdown { margin-bottom: 10px; }
+    /* Type of Persecution Dropdown */
+    #persecution-box .custom-dropdown { margin-bottom: 10px; }
+    /* Destination Dropdown */
+    #destination-box .custom-dropdown { margin-bottom: 10px; }
+
+    /* Age input and other native fields remain standard */
+    .option-box input[type="number"],
+    .option-box input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    /* ------------------------------ CHECKBOXES ------------------------------ */
+    .checkbox-group .checkbox-line {
+      display: flex;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .checkbox-line .checkbox-text {
+      margin-left: 8px;
+      color: #fff;
+      font-size: 14px;
+    }
+    input[type="checkbox"] {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      background-color: #fff;
+      cursor: pointer;
+      position: relative;
+    }
+    input[type="checkbox"]:hover {
+      border-color: #888;
+    }
+    input[type="checkbox"]:checked {
+      background-color: #fff;
+      border-color: #666;
+    }
+    input[type="checkbox"]:checked::before {
+      content: "";
+      display: block;
+      position: absolute;
+      top: 1px;
+      left: 5px;
+      width: 4px;
+      height: 8px;
+      border: solid #666;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+
+    #onboarding-container button {
+      margin-top: 10px;
+      padding: 8px 12px;
+      font-family: 'Copperplate Gothic Light', sans-serif;
+      font-size: 14px;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+    #onboarding-container button:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+    .onboarding-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 10px;
+    }
+    /* Advice notice above the buttons */
+    #onboarding-advice {
+      font-family: 'Copperplate Gothic Light', sans-serif;
+      font-size: 12px;
+      color: #fff;
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <video id="video-background" autoplay loop muted>
+    <source src="{{ url_for('static', filename='v0.mp4') }}" type="video/mp4">
+  </video>
+  <div class="layout">
+    <div class="sidebar">
+      <button onclick="window.location.href='{{ url_for('chat_page', unique_code=user.unique_code, new=1) }}'" class="sidebar-new-chat">
+        New Chat
+      </button>
+      <div class="sidebar-header">Chat History</div>
+      <div class="chat-history">
+        {% for chat in history %}
+          <div class="chat-item" id="chat-item-{{ chat.id }}" data-conversation-id="{{ chat.id }}">
+            <div class="chat-item-top">
+              <span class="chat-title" id="chat-title-{{ chat.id }}" onclick="loadConversation({{ chat.id }})">
+                {{ chat.title or ("Conversation " ~ chat.id) }}
+              </span>
+              <button class="dots-button" onclick="toggleChatMenu(event, {{ chat.id }})">⋮</button>
+            </div>
+            <div class="chat-menu" id="chat-menu-{{ chat.id }}">
+              <button onclick="startInPlaceEdit({{ chat.id }})">Rename</button>
+              <button onclick="startInPlaceDelete({{ chat.id }})">Delete</button>
+              <button onclick="exportPDF({{ chat.id }})">Export PDF</button>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="sidebar-buttons">
+        <button onclick="window.location.href='{{ url_for('edit_user', unique_code=user.unique_code) }}'">Edit Profile</button>
+        <button onclick="window.location.href='{{ url_for('home_logged_in') }}'">Home</button>
+        <button onclick="window.location.href='{{ url_for('logout') }}'">Log Out</button>
+      </div>
+    </div>
+    <div class="chat-section">
+      <div class="chat-messages">
+        <!-- Onboarding Container -->
+        <div id="onboarding-container">
+          <p>Welcome to Lugoo! Please provide the following details to proceed:</p>
+
+          <!-- Nationality Box using custom dropdown -->
+          <div class="option-box" id="nationality-box">
+            <label for="nationality-input">Nationality:</label>
+            <div class="custom-dropdown" id="nationality-dropdown">
+              <div class="custom-dropdown-selected">Select your nationality</div>
+              <div class="custom-dropdown-options">
+                <div class="custom-dropdown-option" data-value="Afghanistan">Afghanistan</div>
+                <div class="custom-dropdown-option" data-value="Albania">Albania</div>
+                <div class="custom-dropdown-option" data-value="Algeria">Algeria</div>
+                <div class="custom-dropdown-option" data-value="Angola">Angola</div>
+                <div class="custom-dropdown-option" data-value="Argentina">Argentina</div>
+                <div class="custom-dropdown-option" data-value="Armenia">Armenia</div>
+                <div class="custom-dropdown-option" data-value="Azerbaijan">Azerbaijan</div>
+                <div class="custom-dropdown-option" data-value="Bahrain">Bahrain</div>
+                <div class="custom-dropdown-option" data-value="Bangladesh">Bangladesh</div>
+                <div class="custom-dropdown-option" data-value="Belize">Belize</div>
+                <div class="custom-dropdown-option" data-value="Benin">Benin</div>
+                <div class="custom-dropdown-option" data-value="Bhutan">Bhutan</div>
+                <div class="custom-dropdown-option" data-value="Bolivia">Bolivia</div>
+                <div class="custom-dropdown-option" data-value="Bosnia and Herzegovina">Bosnia and Herzegovina</div>
+                <div class="custom-dropdown-option" data-value="Botswana">Botswana</div>
+                <div class="custom-dropdown-option" data-value="Brazil">Brazil</div>
+                <div class="custom-dropdown-option" data-value="Brunei">Brunei</div>
+                <div class="custom-dropdown-option" data-value="Burkina Faso">Burkina Faso</div>
+                <div class="custom-dropdown-option" data-value="Burundi">Burundi</div>
+                <div class="custom-dropdown-option" data-value="Cabo Verde">Cabo Verde</div>
+                <div class="custom-dropdown-option" data-value="Cambodia">Cambodia</div>
+                <div class="custom-dropdown-option" data-value="Cameroon">Cameroon</div>
+                <div class="custom-dropdown-option" data-value="Central African Republic">Central African Republic</div>
+                <div class="custom-dropdown-option" data-value="Chad">Chad</div>
+                <div class="custom-dropdown-option" data-value="Chile">Chile</div>
+                <div class="custom-dropdown-option" data-value="China">China</div>
+                <div class="custom-dropdown-option" data-value="Colombia">Colombia</div>
+                <div class="custom-dropdown-option" data-value="Comoros">Comoros</div>
+                <div class="custom-dropdown-option" data-value="Congo (Democratic Republic)">Congo (Democratic Republic)</div>
+                <div class="custom-dropdown-option" data-value="Congo (Republic)">Congo (Republic)</div>
+                <div class="custom-dropdown-option" data-value="Costa Rica">Costa Rica</div>
+                <div class="custom-dropdown-option" data-value="Côte d'Ivoire (Ivory Coast)">Côte d'Ivoire (Ivory Coast)</div>
+                <div class="custom-dropdown-option" data-value="Cuba">Cuba</div>
+                <div class="custom-dropdown-option" data-value="Djibouti">Djibouti</div>
+                <div class="custom-dropdown-option" data-value="Dominican Republic">Dominican Republic</div>
+                <div class="custom-dropdown-option" data-value="Ecuador">Ecuador</div>
+                <div class="custom-dropdown-option" data-value="Egypt">Egypt</div>
+                <div class="custom-dropdown-option" data-value="El Salvador">El Salvador</div>
+                <div class="custom-dropdown-option" data-value="Equatorial Guinea">Equatorial Guinea</div>
+                <div class="custom-dropdown-option" data-value="Eritrea">Eritrea</div>
+                <div class="custom-dropdown-option" data-value="Eswatini (Swaziland)">Eswatini (Swaziland)</div>
+                <div class="custom-dropdown-option" data-value="Ethiopia">Ethiopia</div>
+                <div class="custom-dropdown-option" data-value="Gabon">Gabon</div>
+                <div class="custom-dropdown-option" data-value="Gambia">Gambia</div>
+                <div class="custom-dropdown-option" data-value="Georgia">Georgia</div>
+                <div class="custom-dropdown-option" data-value="Ghana">Ghana</div>
+                <div class="custom-dropdown-option" data-value="Guatemala">Guatemala</div>
+                <div class="custom-dropdown-option" data-value="Guinea">Guinea</div>
+                <div class="custom-dropdown-option" data-value="Guinea-Bissau">Guinea-Bissau</div>
+                <div class="custom-dropdown-option" data-value="Guyana">Guyana</div>
+                <div class="custom-dropdown-option" data-value="Haiti">Haiti</div>
+                <div class="custom-dropdown-option" data-value="Honduras">Honduras</div>
+                <div class="custom-dropdown-option" data-value="India">India</div>
+                <div class="custom-dropdown-option" data-value="Indonesia">Indonesia</div>
+                <div class="custom-dropdown-option" data-value="Iran">Iran</div>
+                <div class="custom-dropdown-option" data-value="Iraq">Iraq</div>
+                <div class="custom-dropdown-option" data-value="Jamaica">Jamaica</div>
+                <div class="custom-dropdown-option" data-value="Japan">Japan</div>
+                <div class="custom-dropdown-option" data-value="Jordan">Jordan</div>
+                <div class="custom-dropdown-option" data-value="Kazakhstan">Kazakhstan</div>
+                <div class="custom-dropdown-option" data-value="Kenya">Kenya</div>
+                <div class="custom-dropdown-option" data-value="Kosovo">Kosovo</div>
+                <div class="custom-dropdown-option" data-value="North Korea">North Korea</div>
+                <div class="custom-dropdown-option" data-value="South Korea">South Korea</div>
+                <div class="custom-dropdown-option" data-value="Kuwait">Kuwait</div>
+                <div class="custom-dropdown-option" data-value="Kyrgyzstan">Kyrgyzstan</div>
+                <div class="custom-dropdown-option" data-value="Laos">Laos</div>
+                <div class="custom-dropdown-option" data-value="Lebanon">Lebanon</div>
+                <div class="custom-dropdown-option" data-value="Lesotho">Lesotho</div>
+                <div class="custom-dropdown-option" data-value="Liberia">Liberia</div>
+                <div class="custom-dropdown-option" data-value="Libya">Libya</div>
+                <div class="custom-dropdown-option" data-value="Madagascar">Madagascar</div>
+                <div class="custom-dropdown-option" data-value="Malawi">Malawi</div>
+                <div class="custom-dropdown-option" data-value="Malaysia">Malaysia</div>
+                <div class="custom-dropdown-option" data-value="Maldives">Maldives</div>
+                <div class="custom-dropdown-option" data-value="Mali">Mali</div>
+                <div class="custom-dropdown-option" data-value="Mauritania">Mauritania</div>
+                <div class="custom-dropdown-option" data-value="Mauritius">Mauritius</div>
+                <div class="custom-dropdown-option" data-value="Mexico">Mexico</div>
+                <div class="custom-dropdown-option" data-value="Mongolia">Mongolia</div>
+                <div class="custom-dropdown-option" data-value="Montenegro">Montenegro</div>
+                <div class="custom-dropdown-option" data-value="Morocco">Morocco</div>
+                <div class="custom-dropdown-option" data-value="Mozambique">Mozambique</div>
+                <div class="custom-dropdown-option" data-value="Myanmar (Burma)">Myanmar (Burma)</div>
+                <div class="custom-dropdown-option" data-value="Namibia">Namibia</div>
+                <div class="custom-dropdown-option" data-value="Nepal">Nepal</div>
+                <div class="custom-dropdown-option" data-value="Nicaragua">Nicaragua</div>
+                <div class="custom-dropdown-option" data-value="Niger">Niger</div>
+                <div class="custom-dropdown-option" data-value="Nigeria">Nigeria</div>
+                <div class="custom-dropdown-option" data-value="North Macedonia">North Macedonia</div>
+                <div class="custom-dropdown-option" data-value="Oman">Oman</div>
+                <div class="custom-dropdown-option" data-value="Pakistan">Pakistan</div>
+                <div class="custom-dropdown-option" data-value="Palestine (Gaza & West Bank)">Palestine (Gaza & West Bank)</div>
+                <div class="custom-dropdown-option" data-value="Panama">Panama</div>
+                <div class="custom-dropdown-option" data-value="Paraguay">Paraguay</div>
+                <div class="custom-dropdown-option" data-value="Peru">Peru</div>
+                <div class="custom-dropdown-option" data-value="Philippines">Philippines</div>
+                <div class="custom-dropdown-option" data-value="Puerto Rico">Puerto Rico</div>
+                <div class="custom-dropdown-option" data-value="Qatar">Qatar</div>
+                <div class="custom-dropdown-option" data-value="Russia">Russia</div>
+                <div class="custom-dropdown-option" data-value="Rwanda">Rwanda</div>
+                <div class="custom-dropdown-option" data-value="Saudi Arabia">Saudi Arabia</div>
+                <div class="custom-dropdown-option" data-value="Senegal">Senegal</div>
+                <div class="custom-dropdown-option" data-value="Serbia">Serbia</div>
+                <div class="custom-dropdown-option" data-value="Seychelles">Seychelles</div>
+                <div class="custom-dropdown-option" data-value="Sierra Leone">Sierra Leone</div>
+                <div class="custom-dropdown-option" data-value="Somalia">Somalia</div>
+                <div class="custom-dropdown-option" data-value="South Africa">South Africa</div>
+                <div class="custom-dropdown-option" data-value="South Sudan">South Sudan</div>
+                <div class="custom-dropdown-option" data-value="Sri Lanka">Sri Lanka</div>
+                <div class="custom-dropdown-option" data-value="Sudan">Sudan</div>
+                <div class="custom-dropdown-option" data-value="Suriname">Suriname</div>
+                <div class="custom-dropdown-option" data-value="Syria">Syria</div>
+                <div class="custom-dropdown-option" data-value="São Tomé and Príncipe">São Tomé and Príncipe</div>
+                <div class="custom-dropdown-option" data-value="Taiwan">Taiwan</div>
+                <div class="custom-dropdown-option" data-value="Tajikistan">Tajikistan</div>
+                <div class="custom-dropdown-option" data-value="Tanzania">Tanzania</div>
+                <div class="custom-dropdown-option" data-value="Thailand">Thailand</div>
+                <div class="custom-dropdown-option" data-value="Timor-Leste (East Timor)">Timor-Leste (East Timor)</div>
+                <div class="custom-dropdown-option" data-value="Togo">Togo</div>
+                <div class="custom-dropdown-option" data-value="Tunisia">Tunisia</div>
+                <div class="custom-dropdown-option" data-value="Turkey">Turkey</div>
+                <div class="custom-dropdown-option" data-value="Turkmenistan">Turkmenistan</div>
+                <div class="custom-dropdown-option" data-value="Uganda">Uganda</div>
+                <div class="custom-dropdown-option" data-value="Ukraine">Ukraine</div>
+                <div class="custom-dropdown-option" data-value="United Arab Emirates">United Arab Emirates</div>
+                <div class="custom-dropdown-option" data-value="Uruguay">Uruguay</div>
+                <div class="custom-dropdown-option" data-value="Uzbekistan">Uzbekistan</div>
+                <div class="custom-dropdown-option" data-value="Venezuela">Venezuela</div>
+                <div class="custom-dropdown-option" data-value="Vietnam">Vietnam</div>
+                <div class="custom-dropdown-option" data-value="Yemen">Yemen</div>
+                <div class="custom-dropdown-option" data-value="Zambia">Zambia</div>
+                <div class="custom-dropdown-option" data-value="Zimbabwe">Zimbabwe</div>
+              </div>
+            </div>
+            <input type="hidden" name="nationality" id="nationality-input" value="">
+          </div>
+
+          <!-- Age Box -->
+          <div class="option-box" id="age-box">
+            <label for="age-input">Age:</label>
+            <input type="number" id="age-input" placeholder="Enter your age" min="0" />
+          </div>
+
+          <!-- Gender Box using custom dropdown -->
+          <div class="option-box" id="gender-box">
+            <label for="gender-input">Gender:</label>
+            <div class="custom-dropdown" id="gender-dropdown">
+              <div class="custom-dropdown-selected">Select your gender</div>
+              <div class="custom-dropdown-options">
+                <div class="custom-dropdown-option" data-value="Male">Male</div>
+                <div class="custom-dropdown-option" data-value="Female">Female</div>
+                <div class="custom-dropdown-option" data-value="Other">Diverse/Other</div>
+              </div>
+            </div>
+            <input type="hidden" name="gender" id="gender-input" value="">
+          </div>
+
+          <!-- Type of Persecution Box using custom dropdown -->
+          <div class="option-box" id="persecution-box">
+            <label for="persecution-input">Type of Persecution:</label>
+            <div class="custom-dropdown" id="persecution-dropdown">
+              <div class="custom-dropdown-selected">Select type</div>
+              <div class="custom-dropdown-options">
+                <div class="custom-dropdown-option" data-value="Humanitarian">Humanitarian</div>
+                <div class="custom-dropdown-option" data-value="Political">Political</div>
+              </div>
+            </div>
+            <input type="hidden" name="persecution" id="persecution-input" value="">
+          </div>
+
+          <!-- Destination Country Box using custom dropdown -->
+          <div class="option-box" id="destination-box">
+            <label for="destination-input">Destination Country:</label>
+            <div class="custom-dropdown" id="destination-dropdown">
+              <div class="custom-dropdown-selected">Select your destination</div>
+              <div class="custom-dropdown-options">
+                <div class="custom-dropdown-option" data-value="United States">United States</div>
+                <div class="custom-dropdown-option" data-value="Australia">Australia</div>
+                <div class="custom-dropdown-option" data-value="Austria">Austria</div>
+                <div class="custom-dropdown-option" data-value="Belgium">Belgium</div>
+                <div class="custom-dropdown-option" data-value="Bulgaria">Bulgaria</div>
+                <div class="custom-dropdown-option" data-value="Croatia">Croatia</div>
+                <div class="custom-dropdown-option" data-value="Cyprus">Cyprus</div>
+                <div class="custom-dropdown-option" data-value="Czech Republic">Czech Republic</div>
+                <div class="custom-dropdown-option" data-value="Denmark (opt-in country)">Denmark</div>
+                <div class="custom-dropdown-option" data-value="Estonia">Estonia</div>
+                <div class="custom-dropdown-option" data-value="Finland">Finland</div>
+                <div class="custom-dropdown-option" data-value="France">France</div>
+                <div class="custom-dropdown-option" data-value="Germany">Germany</div>
+                <div class="custom-dropdown-option" data-value="Greece">Greece</div>
+                <div class="custom-dropdown-option" data-value="Hungary">Hungary</div>
+                <div class="custom-dropdown-option" data-value="Ireland (opt-in country)">Ireland</div>
+                <div class="custom-dropdown-option" data-value="Italy">Italy</div>
+                <div class="custom-dropdown-option" data-value="Latvia">Latvia</div>
+                <div class="custom-dropdown-option" data-value="Lithuania">Lithuania</div>
+                <div class="custom-dropdown-option" data-value="Luxembourg">Luxembourg</div>
+                <div class="custom-dropdown-option" data-value="Malta">Malta</div>
+                <div class="custom-dropdown-option" data-value="Netherlands">Netherlands</div>
+                <div class="custom-dropdown-option" data-value="Poland">Poland</div>
+                <div class="custom-dropdown-option" data-value="Portugal">Portugal</div>
+                <div class="custom-dropdown-option" data-value="Romania">Romania</div>
+                <div class="custom-dropdown-option" data-value="Slovakia">Slovakia</div>
+                <div class="custom-dropdown-option" data-value="Slovenia">Slovenia</div>
+                <div class="custom-dropdown-option" data-value="Spain">Spain</div>
+                <div class="custom-dropdown-option" data-value="Sweden">Sweden</div>
+                <div class="custom-dropdown-option" data-value="Iceland">Iceland</div>
+                <div class="custom-dropdown-option" data-value="Liechtenstein">Liechtenstein</div>
+                <div class="custom-dropdown-option" data-value="New Zealand">New Zealand</div>
+                <div class="custom-dropdown-option" data-value="Norway">Norway</div>
+                <div class="custom-dropdown-option" data-value="Switzerland">Switzerland</div>
+              </div>
+            </div>
+            <input type="hidden" name="destination" id="destination-input" value="">
+          </div>
+
+          <!-- Minority Status Box -->
+          <div class="option-box" id="minority-box">
+            <label>Minority Status:</label>
+            <div class="checkbox-group">
+              <div class="checkbox-line">
+                <input type="checkbox" name="minority" value="People of diverse sexual orientations and gender identities" />
+                <span class="checkbox-text">People of diverse sexual orientations and gender identities</span>
+              </div>
+              <div class="checkbox-line">
+                <input type="checkbox" name="minority" value="Ethnic and/or Religious Minority" />
+                <span class="checkbox-text">Ethnic and/or Religious Minority</span>
+              </div>
+              <div class="checkbox-line">
+                <input type="checkbox" name="minority" value="Medically Vulnerable" />
+                <span class="checkbox-text">Medically Vulnerable</span>
+              </div>
+              <div class="checkbox-line">
+                <input type="checkbox" name="minority" value="Disabled" />
+                <span class="checkbox-text">Disabled</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Advice Notice (above buttons) -->
+          <p id="onboarding-advice">
+            Lugoo’s context-aware process generator is a key feature that creates a customized, case-specific experience based on your input. To enable Lugoo to generate the most accurate and tailored probability process, we recommend completing this form.
+          </p>
+
+          <!-- Onboarding Buttons -->
+          <div class="onboarding-buttons">
+            <button onclick="submitOnboarding()">Proceed</button>
+            <button onclick="skipOnboarding()">Skip and Chat</button>
+          </div>
+        </div>
+
+        <!-- Existing transcript messages (if any) -->
+        {% if active_chat and active_chat.transcript %}
+          {{ active_chat.transcript|safe }}
+        {% endif %}
+      </div>
+
+      <div class="chat-input-container">
+        <form method="POST" action="{% if active_chat %}{{ url_for('chat_page', unique_code=user.unique_code, conversation_id=active_chat.id) }}{% else %}{{ url_for('chat_page', unique_code=user.unique_code) }}{% endif %}">
+          <div class="textarea-container">
+            <textarea name="prompt" id="chat-box"></textarea>
+            <div class="question-placeholder" id="question-placeholder"></div>
+          </div>
+          <button type="submit" class="send-btn">Send</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Chat menu, rename, delete, PDF export, and typing effect functions (unchanged)
+    let editingChatId = null;
+    let originalTitle = "";
+
+    function toggleChatMenu(evt, chatId) {
+      evt.stopPropagation();
+      const expandedItems = document.querySelectorAll('.chat-item.expanded');
+      expandedItems.forEach(item => {
+        const itemId = item.getAttribute('data-conversation-id');
+        if (parseInt(itemId) !== chatId) {
+          item.classList.remove('expanded');
+        }
+      });
+      const item = document.getElementById(`chat-item-${chatId}`);
+      item.classList.toggle("expanded");
+    }
+
+    function loadConversation(chatId) {
+      window.location.href = `/chat/{{ user.unique_code }}?conversation_id=${chatId}`;
+    }
+
+    function startInPlaceEdit(chatId) {
+      const titleSpan = document.getElementById(`chat-title-${chatId}`);
+      const original = titleSpan.textContent.trim();
+      if (editingChatId === chatId) {
+        revertInPlaceEdit(chatId);
+        return;
+      }
+      const input = document.createElement("input");
+      input.type = "text";
+      input.value = original;
+      input.className = "rename-input";
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          submitRename(chatId, input.value);
+        } else if (e.key === "Escape") {
+          revertInPlaceEdit(chatId);
+        }
+      });
+      input.addEventListener("blur", () => {
+        revertInPlaceEdit(chatId);
+      });
+      titleSpan.parentNode.replaceChild(input, titleSpan);
+      input.focus();
+      editingChatId = chatId;
+      originalTitle = original;
+    }
+
+    function revertInPlaceEdit(chatId) {
+      if (!editingChatId) return;
+      const container = document.getElementById(`chat-item-${chatId}`);
+      if (!container) return;
+      const input = container.querySelector(".rename-input");
+      if (!input) return;
+      const span = document.createElement("span");
+      span.className = "chat-title";
+      span.id = `chat-title-${chatId}`;
+      span.textContent = originalTitle;
+      span.onclick = () => loadConversation(chatId);
+      input.parentNode.replaceChild(span, input);
+      editingChatId = null;
+      originalTitle = "";
+    }
+
+    function submitRename(chatId, newTitle) {
+      newTitle = newTitle.trim();
+      if (!newTitle) {
+        alert("Please enter a new title.");
+        return;
+      }
+      fetch(`/rename_conversation/${chatId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `new_title=${encodeURIComponent(newTitle)}`
+      })
+      .then((res) => {
+        if (res.ok) location.reload();
+        else alert("Rename failed.");
+      });
+    }
+
+    function startInPlaceDelete(chatId) {
+      const menuDiv = document.getElementById(`chat-menu-${chatId}`);
+      menuDiv.innerHTML = `
+        <div class="delete-confirmation">
+          <span>Delete this conversation?</span>
+          <button class="yes-btn" onclick="confirmDelete(${chatId})">Yes</button>
+          <button class="no-btn" onclick="revertDeleteMenu(${chatId})">No</button>
+        </div>
+      `;
+    }
+
+    function revertDeleteMenu(chatId) {
+      const menuDiv = document.getElementById(`chat-menu-${chatId}`);
+      menuDiv.innerHTML = `
+        <button onclick="startInPlaceEdit(${chatId})">Rename</button>
+        <button onclick="startInPlaceDelete(${chatId})">Delete</button>
+        <button onclick="exportPDF(${chatId})">Export PDF</button>
+      `;
+    }
+
+    function confirmDelete(chatId) {
+      fetch(`/delete_conversation/${chatId}`, { method: "POST" })
+      .then(res => {
+        if (res.ok) location.reload();
+        else alert("Delete failed.");
+      });
+    }
+
+    function exportPDF(chatId) {
+      window.location.href = `/export_pdf/${chatId}`;
+    }
+
+    function simulateTypingEffect(element, text, delay = 20) {
+      const strongEl = element.querySelector("strong");
+      if (strongEl) {
+        strongEl.classList.remove("fading");
+      }
+      element.innerHTML = "<strong>Lugoo:</strong> ";
+      let i = 0;
+      let interval = setInterval(() => {
+        if (i < text.length) {
+          element.innerHTML += text.charAt(i);
+          i++;
+          element.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        } else {
+          clearInterval(interval);
+        }
+      }, delay);
+    }
+
+    document.querySelector('form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const chatBox = document.getElementById('chat-box');
+      const promptText = chatBox.value.trim();
+      if (!promptText) return;
+
+      const chatMessages = document.querySelector('.chat-messages');
+      const userMessageDiv = document.createElement('div');
+      userMessageDiv.className = 'user-message';
+      userMessageDiv.textContent = promptText;
+      chatMessages.appendChild(userMessageDiv);
+
+      chatBox.value = '';
+
+      const botPlaceholder = document.createElement('div');
+      botPlaceholder.className = 'bot-message';
+      botPlaceholder.innerHTML = '<strong class="fading">Lugoo:</strong>';
+      chatMessages.appendChild(botPlaceholder);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+
+      try {
+        const response = await fetch(window.location.href, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: new URLSearchParams({ prompt: promptText })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          simulateTypingEffect(botPlaceholder, data.answer, 20);
+        } else {
+          botPlaceholder.innerHTML = `<strong>Lugoo:</strong> Error fetching response.`;
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        botPlaceholder.innerHTML = `<strong>Lugoo:</strong> Error fetching response.`;
+      }
+    });
+
+    function submitOnboarding() {
+      const nationality = document.getElementById('nationality-input').value;
+      const age = document.getElementById('age-input').value;
+      const gender = document.getElementById('gender-input').value;
+      const persecution = document.getElementById('persecution-input').value;
+      const destination = document.getElementById('destination-input').value;
+      const minorityElements = document.querySelectorAll('#minority-box input[name="minority"]:checked');
+      let minorities = [];
+      minorityElements.forEach(el => minorities.push(el.value));
+
+      console.log("Onboarding Data:", { nationality, age, gender, persecution, destination, minorities });
+
+      document.getElementById('onboarding-container').style.display = 'none';
+
+      const chatMessages = document.querySelector('.chat-messages');
+      const confirmationDiv = document.createElement('div');
+      confirmationDiv.className = 'bot-message';
+      confirmationDiv.innerHTML = '<strong>Lugoo:</strong> Your details have been recorded. How can I assist you further?';
+      chatMessages.insertBefore(confirmationDiv, chatMessages.children[1]);
+    }
+
+    function skipOnboarding() {
+      document.getElementById('onboarding-container').style.display = 'none';
+    }
+
+    const questions = [
+      "Where should I go to apply for asylum in Germany?",
+      "How long does the asylum process usually take?",
+      "What is Bürgergeld, and who is eligible to receive it?",
+      "In what ways can the Jobcenter support asylum seekers and refugees?",
+      "How and where do I register your residence (Anmeldung) in Germany?",
+      "What distinguishes an asylum seeker from a recognized refugee?",
+      "How do the terms immigrant, emigrant, and migrant differ?",
+      "What is Bürgergeld?",
+      "Am I allowed to work while my asylum application is being processed?"
+    ];
+    let index = 0;
+    let isTyping = false;
+    let timeout = null;
+    const placeholder = document.getElementById("question-placeholder");
+
+    function changeQuestion() {
+      if (!isTyping) {
+        placeholder.style.opacity = "0";
+        setTimeout(() => {
+          placeholder.textContent = questions[index];
+          placeholder.style.opacity = "1";
+          index = (index + 1) % questions.length;
+        }, 1500);
+      }
+    }
+
+    function restartLoop() {
+      if (!document.activeElement.matches("#chat-box")) {
+        isTyping = false;
+        placeholder.style.display = "block";
+        changeQuestion();
+        interval = setInterval(changeQuestion, 5000);
+      }
+    }
+
+    placeholder.textContent = questions[index];
+    let interval = setInterval(changeQuestion, 5000);
+
+    const chatBoxElem = document.getElementById("chat-box");
+    chatBoxElem.addEventListener("focus", () => {
+      isTyping = true;
+      clearInterval(interval);
+      placeholder.style.display = "none";
+    });
+    chatBoxElem.addEventListener("input", () => {
+      isTyping = true;
+      clearTimeout(timeout);
+      timeout = setTimeout(restartLoop, 5000);
+    });
+    chatBoxElem.addEventListener("blur", () => {
+      clearTimeout(timeout);
+      timeout = setTimeout(restartLoop, 5000);
+    });
+
+    // ---------------------- CUSTOM DROPDOWN FUNCTIONALITY ----------------------
+    document.querySelectorAll('.custom-dropdown').forEach(function(dropdown) {
+      var selected = dropdown.querySelector('.custom-dropdown-selected');
+      var options = dropdown.querySelectorAll('.custom-dropdown-option');
+
+      selected.addEventListener('click', function(e) {
+        e.stopPropagation();
+        closeAllCustomDropdowns();
+        dropdown.classList.toggle('open');
+      });
+
+      options.forEach(function(option) {
+        option.addEventListener('click', function(e) {
+          var value = this.getAttribute('data-value');
+          selected.textContent = this.textContent;
+          dropdown.classList.remove('open');
+          if (dropdown.id === 'nationality-dropdown') {
+            document.getElementById('nationality-input').value = value;
+          } else if (dropdown.id === 'destination-dropdown') {
+            document.getElementById('destination-input').value = value;
+          } else if (dropdown.id === 'gender-dropdown') {
+            document.getElementById('gender-input').value = value;
+          } else if (dropdown.id === 'persecution-dropdown') {
+            document.getElementById('persecution-input').value = value;
+          }
+        });
+      });
+    });
+
+    function closeAllCustomDropdowns() {
+      document.querySelectorAll('.custom-dropdown').forEach(function(dropdown) {
+        dropdown.classList.remove('open');
+      });
+    }
+
+    document.addEventListener('click', closeAllCustomDropdowns);
+  </script>
+</body>
+</html>

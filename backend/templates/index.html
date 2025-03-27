@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lugoo - Home</title>
+  <style>
+    /* Video Background */
+    #video-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -1;
+    }
+
+    /* Center the entire page content vertically & horizontally */
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Copperplate Gothic Light', sans-serif;
+      text-align: center;
+      overflow: hidden; /* Hide scrollbars if not needed */
+    }
+
+    h1 {
+      color: #EDF0ED;
+      font-size: 28px;
+      font-weight: bold;
+      font-family: 'Copperplate Gothic Bold', sans-serif;
+      margin-bottom: 20px;
+    }
+
+    .content-box {
+      background: rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 600px;
+      color: #EDF0ED;
+      margin-bottom: 40px; /* Space before the buttons row */
+    }
+
+    /* Button style matching the sidebar design */
+    button {
+      font-family: 'Copperplate Gothic Light', sans-serif;
+      font-size: 14px;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 10px 15px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+    button:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Buttons row: left column (Register + or + Log in) and About button side by side */
+    .buttons {
+      display: flex;
+      justify-content: center; /* Center the row horizontally */
+      align-items: flex-start; /* Top-align the column with the About button */
+      gap: 20px;               /* Space between the column and the About button */
+    }
+
+    /* Left column with Register, or, Log in stacked */
+    .left-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center; /* Keep the stack centered */
+      gap: 10px;
+    }
+
+    .separator {
+      font-size: 16px;
+      color: #EDF0ED;
+      font-family: 'Copperplate Gothic Light', sans-serif;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Video Background -->
+  <video id="video-background" autoplay loop muted>
+    <source src="static/v0.mp4" type="video/mp4">
+  </video>
+
+  <h1>Welcome to Lugoo</h1>
+
+  <div class="content-box">
+    <p>
+      A cutting-edge AI Assistant Chatbot designed to streamline and simplify
+      the complexities of immigration and asylum-related legal data
+    </p>
+  </div>
+
+  <div class="buttons">
+    <!-- Left column: Register (top), or (middle), Log in (bottom) -->
+    <div class="left-col">
+      <button onclick="window.location.href='{{ url_for('register') }}'">Register</button>
+      <span class="separator">or</span>
+      <button onclick="window.location.href='{{ url_for('login') }}'">Log in</button>
+    </div>
+
+    <!-- Right side: About, aligned horizontally with "Register" -->
+    <button onclick="window.location.href='/about'">About</button>
+  </div>
+
+</body>
+</html>

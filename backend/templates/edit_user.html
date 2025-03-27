@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Profile</title>
+    <style>
+        /* Video Background */
+        #video-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body style="color: #181918; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; padding: 20px; margin-top: -100px;">
+
+    <!-- Video Background -->
+    <video id="video-background" autoplay loop muted>
+        <source src="{{ url_for('static', filename='v0.mp4') }}" type="video/mp4">
+    </video>
+
+    <h1 style="color: #EDF0ED; font-size: 28px; font-weight: bold; font-family: 'Copperplate Gothic Bold', sans-serif;">
+        Edit Profile
+    </h1>
+
+    <!-- Glassmorphism container -->
+    <div style="
+        background: rgba(0, 0, 0, 0.25);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 500px;
+        text-align: center;
+        color: #EDF0ED;
+    ">
+        {% if error %}
+            <p style="color:red;">{{ error }}</p>
+        {% endif %}
+
+        <!-- ✅ Update Username -->
+        <form method="POST" action="{{ url_for('edit_user', unique_code=user.unique_code) }}">
+            <input type="hidden" name="action" value="update_username">
+            <input type="text" name="username" value="{{ user.username }}" placeholder="Enter new username" required style="padding: 10px; width: 80%; border-radius: 5px; border: 1px solid #ccc; margin-bottom: 15px;" /><br />
+            <button type="submit" class="styled-button">Update Username</button>
+        </form>
+
+        <!-- ✅ Change Password -->
+        <form method="POST" action="{{ url_for('edit_user', unique_code=user.unique_code) }}">
+            <input type="hidden" name="action" value="change_password">
+            <input type="password" name="new_password" placeholder="Enter new password" required style="padding: 10px; width: 80%; border-radius: 5px; border: 1px solid #ccc; margin: 15px 0;" /><br />
+            <button type="submit" class="styled-button">Change Password</button>
+        </form>
+
+        <!-- ✅ Delete Profile (Uses a Modal) -->
+        <button onclick="openModal()" class="delete-button">Delete Profile</button>
+
+        <!-- ✅ Delete Confirmation Modal -->
+        <div id="deleteModal" style="
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        ">
+            <p style="font-size: 18px; font-family: 'Copperplate Gothic Light', sans-serif; color: black;">
+                Are you sure you want to delete your profile?
+            </p>
+            <form id="deleteForm" method="POST" action="{{ url_for('delete_user', unique_code=user.unique_code) }}">
+                <input type="hidden" name="confirm_delete" value="yes">
+                <button type="submit" class="styled-button">Delete</button>
+                <button type="button" onclick="closeModal()" class="styled-button">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <div style="margin-top: 50px; display: flex; gap: 20px; justify-content: center;">
+        <button onclick="window.location.href='{{ url_for('chat_page', unique_code=user.unique_code) }}'" class="styled-button back-to-chat">
+            Back to Chat
+        </button>
+    </div>
+
+    <script>
+        function openModal() {
+            document.getElementById("deleteModal").style.display = "block";
+        }
+        function closeModal() {
+            document.getElementById("deleteModal").style.display = "none";
+        }
+    </script>
+
+    <style>
+        /* Styled buttons matching the sidebar design */
+        .styled-button {
+            padding: 12px 25px;
+            font-size: 16px;
+            font-family: 'Copperplate Gothic Light', sans-serif;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background-color: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        .styled-button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        /* Delete button with red styling */
+        .delete-button {
+            margin-top: 20px;
+            padding: 12px 25px;
+            font-size: 16px;
+            font-family: 'Copperplate Gothic Light', sans-serif;
+            border: 2px solid rgba(255, 0, 0, 0.8);
+            background-color: rgba(255, 50, 50, 0.8);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        .delete-button:hover {
+            background-color: rgba(200, 0, 0, 0.9);
+            border-color: rgba(200, 0, 0, 1);
+        }
+        /* Remove blue focus outline on inputs */
+        input:focus {
+            outline: none;
+            border: 1px solid #ccc;
+        }
+        /* "Back to Chat" button color override */
+        .back-to-chat {
+            color: #EDF0ED !important;
+        }
+    </style>
+
+</body>
+</html>

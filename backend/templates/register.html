@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Register</title>
+  <script>
+    function showPasswordField() {
+      var username = document.getElementById("username").value.trim();
+      var passwordDiv = document.getElementById("passwordDiv");
+      if (username.length > 0) {
+        passwordDiv.style.display = "block";  // Show password field
+      } else {
+        passwordDiv.style.display = "none";   // Hide if no username
+      }
+    }
+  </script>
+  <style>
+    /* Video Background */
+    #video-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -1;
+    }
+    /* Global Button Style matching sidebar buttons */
+    button {
+      font-family: 'Copperplate Gothic Light', sans-serif;
+      font-size: 14px;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 10px 15px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+    button:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+    /* Remove blue outline when input is focused */
+    input:focus {
+      outline: none;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body style="color: #181918; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; padding: 20px;">
+  <!-- Video Background -->
+  <video id="video-background" autoplay loop muted>
+    <source src="{{ url_for('static', filename='v0.mp4') }}" type="video/mp4">
+  </video>
+
+  <h1 style="color: #EDF0ED; font-size: 28px; font-weight: bold; font-family: 'Copperplate Gothic Bold', sans-serif;">
+    Register
+  </h1>
+
+  <div style="
+    background: rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 500px;
+    text-align: center;
+    color: #EDF0ED;
+  ">
+    {% if error %}
+      <p style="color:red;">{{ error }}</p>
+    {% endif %}
+    <form method="POST" action="{{ url_for('register') }}">
+      <input type="text" id="username" name="username" placeholder="Enter your username" required
+             style="padding: 10px; width: 80%; border-radius: 5px; border: 1px solid #ccc; margin-bottom: 15px;"
+             onblur="showPasswordField()" />
+      <div id="passwordDiv" style="display: none; margin-top: 10px;">
+        <input type="password" name="password" placeholder="Enter your password" required
+               style="padding: 10px; width: 80%; border-radius: 5px; border: 1px solid #ccc; margin-bottom: 15px;"/>
+      </div>
+      <button type="submit">Register</button>
+    </form>
+  </div>
+
+  <button onclick="window.location.href='{{ url_for('home') }}'" style="margin-top: 20px;">
+    Back to Home
+  </button>
+</body>
+</html>
